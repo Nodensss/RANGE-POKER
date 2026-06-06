@@ -51,7 +51,7 @@
   .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 
   /* table format toggle */
-  .fmt-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .fmt-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
   .fmt{
     border:1px solid var(--line);background:var(--fold);color:var(--text);
     border-radius:12px;padding:10px 6px;font-weight:700;font-size:14px;cursor:pointer;
@@ -298,18 +298,14 @@ const POS_ORDER = ['EP+1','EP+2','MP','HJ','CO','BU'];
 const FORMATS = {
   '6max': {
     label:'6-max', positions:['MP','HJ','CO','BU'],
-    note:'<b>6-max:</b> ранних EP-позиций нет. Первой действует <b>MP</b> (она же UTG для 6-max). Порядок: MP → HJ → CO → BU → SB → BB.'
+    note:'<b>6-max (короткий стол):</b> ранних EP-позиций нет. Первой действует <b>MP</b> (она же UTG для 6-max). Блайнды доходят чаще, поэтому в среднем играешь шире. Порядок: MP → HJ → CO → BU → SB → BB.'
   },
-  '8max': {
-    label:'8-max', positions:['EP+1','EP+2','MP','HJ','CO','BU'],
-    note:'<b>8-max:</b> используется вся таблица. Первой действует <b>EP+1</b>. Порядок: EP+1 → EP+2 → MP → HJ → CO → BU → SB → BB.'
-  },
-  '9max': {
-    label:'9-max', positions:['EP+1','EP+2','MP','HJ','CO','BU'],
-    note:'<b>9-max:</b> мест больше, но самые ранние играются по тому же тайтовому диапазону. Первую позицию (UTG) открывай как <b>EP+1 (16%)</b>. Порядок: UTG/EP+1 → EP+2 → MP → HJ → CO → BU → SB → BB.'
+  'full': {
+    label:'8-9 max', positions:['EP+1','EP+2','MP','HJ','CO','BU'],
+    note:'<b>Полный стол (8-9 max):</b> используется вся таблица. Первой действует ранняя позиция (UTG / EP+1) — её играешь по самому тайтовому диапазону <b>EP+1 (16%)</b>. На 9-max ранних мест на одно больше, но диапазоны те же. Порядок: EP+1 → EP+2 → MP → HJ → CO → BU → SB → BB.'
   }
 };
-const FMT_ORDER = ['6max','8max','9max'];
+const FMT_ORDER = ['6max','full'];
 
 let state = { fmt:'6max', pos:null, r1:null, r2:null, suited:null };
 
