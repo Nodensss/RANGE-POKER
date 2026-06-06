@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFI Помощник — MTT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root{
+    --bg:#0e0b18;
+    --panel:#171327;
+    --panel2:#1f1934;
+    --line:#2b2342;
+    --raise:#7c5cff;
+    --raise-soft:#5a45b8;
+    --fold:#1a1628;
+    --text:#ece9f6;
+    --muted:#9a91bd;
+    --green:#37d39b;
+    --red:#ff5d6c;
+    --accent:#b9a6ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #271c4a 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #1d2a4a 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Sora',sans-serif;
+    min-height:100vh;
+    padding:18px 14px 60px;
+    line-height:1.4;
+  }
+  .wrap{max-width:560px;margin:0 auto;}
+  header{margin-bottom:18px;}
+  .kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--accent);text-transform:uppercase;}
+  h1{font-size:26px;font-weight:800;line-height:1.05;margin-top:6px;letter-spacing:-.02em;}
+  h1 .pl{color:var(--raise);}
+  .sub{color:var(--muted);font-size:13px;margin-top:8px;}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:16px;
+    margin-top:16px;
+    box-shadow:0 18px 40px -24px rgba(0,0,0,.8);
+  }
+  .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+  /* table format toggle */
+  .fmt-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .fmt{
+    border:1px solid var(--line);background:var(--fold);color:var(--text);
+    border-radius:12px;padding:10px 6px;font-weight:700;font-size:14px;cursor:pointer;
+    transition:.15s;text-align:center;
+  }
+  .fmt small{display:block;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:9.5px;color:var(--muted);margin-top:3px;}
+  .fmt.active{background:linear-gradient(180deg,#2bc4d8,#1f8fb8);border-color:#2bc4d8;box-shadow:0 8px 22px -10px #2bc4d8;}
+  .fmt.active small{color:#dffaff;}
+  .fmt:active{transform:scale(.97);}
+
+  /* position pills */
+  .pos-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .pos{
+    border:1px solid var(--line);
+    background:var(--fold);
+    color:var(--text);
+    border-radius:12px;
+    padding:11px 6px;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:.15s;
+    text-align:center;
+    position:relative;
+  }
+  .pos small{display:block;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:10px;color:var(--muted);margin-top:3px;}
+  .pos.active{background:linear-gradient(180deg,var(--raise),var(--raise-soft));border-color:var(--raise);box-shadow:0 8px 22px -10px var(--raise);}
+  .pos.active small{color:#e7dcff;}
+  .pos:active{transform:scale(.97);}
+
+  /* card pickers */
+  .pickers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .picker h4{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  .ranks{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .ranks.suits{grid-template-columns:repeat(4,1fr);margin-top:8px;}
+  .rk,.st{
+    border:1px solid var(--line);
+    background:var(--fold);
+    border-radius:8px;
+    padding:8px 0;
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    transition:.12s;
+    color:var(--text);
+  }
+  .rk.sel{background:var(--accent);color:#1a1030;border-color:var(--accent);}
+  .st.red{color:var(--red);}
+  .st.sel{background:var(--accent);color:#1a1030;border-color:var(--accent);}
+  .st.sel.red{color:#7a0010;}
+  .rk:active,.st:active{transform:scale(.93);}
+
+  .reset{margin-top:12px;background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:10px;padding:8px 14px;font-family:'Sora';font-size:12px;cursor:pointer;}
+  .reset:active{transform:scale(.97);}
+
+  /* suited toggle */
+  .suited-row{margin-top:14px;}
+  .suited-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:7px;}
+  .suited-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .tg{
+    border:1px solid var(--line);background:var(--fold);color:var(--text);
+    border-radius:11px;padding:12px 6px;font-weight:700;font-size:14px;cursor:pointer;
+    font-family:'Sora';transition:.14s;
+  }
+  .tg.sel{background:linear-gradient(180deg,var(--raise),var(--raise-soft));border-color:var(--raise);box-shadow:0 8px 20px -10px var(--raise);}
+  .tg:active{transform:scale(.97);}
+  .suited-row.disabled{opacity:.35;pointer-events:none;}
+  .suited-row.disabled .suited-label::after{content:' — для пары не нужна';font-weight:400;}
+
+  /* verdict */
+  .verdict{
+    border-radius:16px;
+    padding:18px;
+    text-align:center;
+    margin-top:16px;
+    border:1px solid var(--line);
+    background:var(--fold);
+    transition:.2s;
+  }
+  .verdict .hand{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;letter-spacing:.04em;}
+  .verdict .hand .rd{color:var(--red);}
+  .verdict .act{font-size:22px;font-weight:800;margin-top:10px;letter-spacing:-.01em;}
+  .verdict .why{font-size:13px;color:var(--muted);margin-top:7px;}
+  .verdict.raise{background:linear-gradient(180deg,rgba(55,211,155,.16),rgba(55,211,155,.05));border-color:rgba(55,211,155,.5);}
+  .verdict.raise .act{color:var(--green);}
+  .verdict.fold{background:linear-gradient(180deg,rgba(255,93,108,.14),rgba(255,93,108,.04));border-color:rgba(255,93,108,.45);}
+  .verdict.fold .act{color:var(--red);}
+  .verdict.empty .act{color:var(--muted);font-weight:700;font-size:16px;}
+
+  /* grid */
+  .gridwrap{overflow-x:auto;margin-top:6px;-webkit-overflow-scrolling:touch;}
+  table.grid{border-collapse:separate;border-spacing:2px;margin:0 auto;}
+  table.grid td{
+    width:30px;height:26px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;font-weight:500;
+    text-align:center;vertical-align:middle;
+    border-radius:4px;
+    background:var(--fold);
+    color:#5a5278;
+    border:1px solid transparent;
+  }
+  table.grid td.r{background:var(--raise);color:#fff;font-weight:700;}
+  table.grid td.hl{outline:2px solid var(--green);outline-offset:0px;box-shadow:0 0 0 2px var(--green);position:relative;z-index:2;}
+  .legend{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11px;color:var(--muted);}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;}
+  .legend .lr{background:var(--raise);}
+  .legend .lf{background:var(--fold);}
+  .legend .lh{background:transparent;box-shadow:0 0 0 2px var(--green);}
+
+  .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;}
+  .note b{color:var(--text);}
+  details{margin-top:10px;}
+  summary{cursor:pointer;color:var(--accent);font-size:13px;font-weight:600;}
+  details p{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">FF START · RFI · MTT</div>
+    <h1>Помощник по <span class="pl">опен-рейзам</span></h1>
+    <p class="sub">Стек 25bb+, рейз всегда 2bb. Выбери позицию и свои карты — получишь вердикт.</p>
+  </header>
+
+  <div class="card">
+    <div class="label">1 · Формат стола</div>
+    <div class="fmt-row" id="formats"></div>
+    <div class="label">2 · Твоя позиция</div>
+    <div class="pos-row" id="positions"></div>
+    <p class="note" id="posNote" style="margin-top:10px;"></p>
+  </div>
+
+  <div class="card">
+    <div class="label">3 · Твои карты</div>
+    <div class="pickers">
+      <div class="picker">
+        <h4>Первая карта</h4>
+        <div class="ranks" id="rank1"></div>
+      </div>
+      <div class="picker">
+        <h4>Вторая карта</h4>
+        <div class="ranks" id="rank2"></div>
+      </div>
+    </div>
+    <div class="suited-row" id="suitedRow">
+      <div class="suited-label">Масть:</div>
+      <div class="suited-toggle">
+        <button class="tg" id="tgSuited" data-v="s">Одной масти (s)</button>
+        <button class="tg" id="tgOff" data-v="o">Разной масти (o)</button>
+      </div>
+    </div>
+    <button class="reset" id="reset">Сбросить карты</button>
+  </div>
+
+  <div class="verdict empty" id="verdict">
+    <div class="act">Выбери позицию и две карты</div>
+    <div class="why">Вердикт появится здесь</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Сетка диапазона · <span id="gridPos">—</span> <span id="gridPct"></span></div>
+    <div class="gridwrap"><table class="grid" id="grid"></table></div>
+    <div class="legend">
+      <span><i class="lr"></i>Рейз 2bb</span>
+      <span><i class="lf"></i>Фолд</span>
+      <span><i class="lh"></i>Твоя рука</span>
+    </div>
+  </div>
+
+  <p class="note"><b>Как читать сетку:</b> по диагонали — пары. Выше диагонали — одномастные (suited, «s»). Ниже — разномастные (offsuit, «o»). Фиолетовая клетка = рейз, тёмная = фолд.</p>
+
+  <details>
+    <summary>Когда отклоняться от таблицы</summary>
+    <p>· Стек меньше 25bb — играй тайтовее: бери диапазон на одну позицию раньше (например, на CO используй диапазон HJ).<br>
+    · Стек меньше 14bb — это уже зона опен-пушей (олл-ин), таблица RFI не применяется.<br>
+    · Главный принцип: чем позже позиция, тем шире диапазон. EP+1 — 16%, BU — 54%.<br>
+    · Частая ошибка: разыгрывать один и тот же диапазон со всех позиций и открывать слабые offsuit-руки (A2o–A9o, K2o–KTo) с ранних позиций.</p>
+  </details>
+</div>
+
+<script>
+const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+const RIDX = {}; RANKS.forEach((r,i)=>RIDX[r]=i);
+
+// Диапазоны оцифрованы с таблицы FF START. Каждая запись — рука в формате
+// пары "AA", suited "AKs", offsuit "AKo". Список = руки, которые РЕЙЗИМ.
+const RANGES = {
+  'EP+1': { pct:'16%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','AKo','KK','KQs','KJs','KTs','K9s',
+    'AQo','QQ','QJs','QTs','Q9s','AJo','KJo','JJ','JTs','J9s','ATo','TT','T9s',
+    '99','88','77','66','55'
+  ])},
+  'EP+2': { pct:'19%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s',
+    'AKo','KK','KQs','KJs','KTs','K9s','K8s',
+    'AQo','QQ','QJs','QTs','Q9s','AJo','KJo','JJ','JTs','J9s',
+    'ATo','TT','T9s','99','98s','88','77','66','55','44','33'
+  ])},
+  'MP': { pct:'22%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+    'AKo','KK','KQs','KJs','KTs','K9s','K8s','K7s','K6s',
+    'AQo','KQo','QQ','QJs','QTs','Q9s','Q8s',
+    'AJo','KJo','QJo','JJ','JTs','J9s','J8s',
+    'ATo','KTo','TT','T9s','T8s','99','98s','88','87s','77','76s','66','55','44','33'
+  ])},
+  'HJ': { pct:'27%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+    'AKo','KK','KQs','KJs','KTs','K9s','K8s','K7s','K6s','K5s','K4s',
+    'AQo','KQo','QQ','QJs','QTs','Q9s','Q8s',
+    'AJo','KJo','QJo','JJ','JTs','J9s','J8s',
+    'ATo','KTo','QTo','JTo','TT','T9s','T8s','T7s',
+    'A9o','99','98s','97s','88','87s','86s','77','76s','75s','66','65s','55','54s','44','43s','33','32s','22'
+  ])},
+  'CO': { pct:'37%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+    'AKo','KK','KQs','KJs','KTs','K9s','K8s','K7s','K6s','K5s','K4s','K3s','K2s',
+    'AQo','KQo','QQ','QJs','QTs','Q9s','Q8s','Q7s','Q6s','Q5s','Q4s',
+    'AJo','KJo','QJo','JJ','JTs','J9s','J8s','J7s','J6s',
+    'ATo','KTo','QTo','JTo','TT','T9s','T8s','T7s','T6s',
+    'A9o','99','98s','97s','96s','88','87s','86s','A8o','77','76s','75s',
+    'A7o','66','65s','64s','A5o','55','54s','44','33','22'
+  ])},
+  'BU': { pct:'54%', hands: new Set([
+    'AA','AKs','AQs','AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+    'AKo','KK','KQs','KJs','KTs','K9s','K8s','K7s','K6s','K5s','K4s','K3s','K2s',
+    'AQo','KQo','QQ','QJs','QTs','Q9s','Q8s','Q7s','Q6s','Q5s','Q4s','Q3s','Q2s',
+    'AJo','KJo','QJo','JJ','JTs','J9s','J8s','J7s','J6s','J5s','J4s','J3s','J2s',
+    'ATo','KTo','QTo','JTo','TT','T9s','T8s','T7s','T6s','T5s','T4s','T3s',
+    'A9o','K9o','Q9o','J9o','T9o','99','98s','97s','96s','95s',
+    'A8o','K8o','Q8o','J8o','T8o','98o','88','87s','86s','85s',
+    'A7o','K7o','Q7o','97o','87o','77','76s','75s','74s',
+    'A6o','K6o','66','65s','64s','A5o','55','54s','53s',
+    'A4o','44','43s','A3o','33','22'
+  ])}
+};
+const POS_ORDER = ['EP+1','EP+2','MP','HJ','CO','BU'];
+
+// Какие позиции реально существуют за столом каждого формата,
+// и как первая позиция называется в реальной игре (для подсказки).
+const FORMATS = {
+  '6max': {
+    label:'6-max', positions:['MP','HJ','CO','BU'],
+    note:'<b>6-max:</b> ранних EP-позиций нет. Первой действует <b>MP</b> (она же UTG для 6-max). Порядок: MP → HJ → CO → BU → SB → BB.'
+  },
+  '8max': {
+    label:'8-max', positions:['EP+1','EP+2','MP','HJ','CO','BU'],
+    note:'<b>8-max:</b> используется вся таблица. Первой действует <b>EP+1</b>. Порядок: EP+1 → EP+2 → MP → HJ → CO → BU → SB → BB.'
+  },
+  '9max': {
+    label:'9-max', positions:['EP+1','EP+2','MP','HJ','CO','BU'],
+    note:'<b>9-max:</b> мест больше, но самые ранние играются по тому же тайтовому диапазону. Первую позицию (UTG) открывай как <b>EP+1 (16%)</b>. Порядок: UTG/EP+1 → EP+2 → MP → HJ → CO → BU → SB → BB.'
+  }
+};
+const FMT_ORDER = ['6max','8max','9max'];
+
+let state = { fmt:'6max', pos:null, r1:null, r2:null, suited:null };
+
+// build formats
+const fmtWrap = document.getElementById('formats');
+FMT_ORDER.forEach(f=>{
+  const b=document.createElement('button');
+  b.className='fmt'; b.dataset.fmt=f;
+  b.innerHTML=`${FORMATS[f].label}<small>${FORMATS[f].positions.length} поз.</small>`;
+  b.onclick=()=>{ state.fmt=f; if(!FORMATS[f].positions.includes(state.pos)) state.pos=null; renderFmt(); buildPositions(); update(); };
+  fmtWrap.appendChild(b);
+});
+function renderFmt(){
+  document.querySelectorAll('.fmt').forEach(e=>e.classList.toggle('active',e.dataset.fmt===state.fmt));
+  document.getElementById('posNote').innerHTML=FORMATS[state.fmt].note;
+}
+
+// build positions (depends on format)
+const posWrap = document.getElementById('positions');
+function buildPositions(){
+  posWrap.innerHTML='';
+  FORMATS[state.fmt].positions.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pos'; b.innerHTML=`${p}<small>${RANGES[p].pct}</small>`;
+    b.onclick=()=>{state.pos=p; renderPos(); update();};
+    b.dataset.pos=p;
+    posWrap.appendChild(b);
+  });
+  renderPos();
+}
+function renderPos(){
+  document.querySelectorAll('.pos').forEach(e=>e.classList.toggle('active',e.dataset.pos===state.pos));
+}
+
+// build rank pickers
+function buildRanks(containerId, which){
+  const c=document.getElementById(containerId); c.innerHTML='';
+  RANKS.forEach(r=>{
+    const d=document.createElement('div'); d.className='rk'; d.textContent=r;
+    d.onclick=()=>{ state[which]=r; markRanks(containerId,which); update(); };
+    d.dataset.r=r; c.appendChild(d);
+  });
+}
+function markRanks(id,which){
+  document.querySelectorAll('#'+id+' .rk').forEach(e=>e.classList.toggle('sel',e.dataset.r===state[which]));
+  refreshSuitedRow();
+}
+buildRanks('rank1','r1'); buildRanks('rank2','r2');
+
+// suited toggle
+const tgSuited=document.getElementById('tgSuited');
+const tgOff=document.getElementById('tgOff');
+const suitedRow=document.getElementById('suitedRow');
+tgSuited.onclick=()=>{ state.suited=true; markSuited(); update(); };
+tgOff.onclick=()=>{ state.suited=false; markSuited(); update(); };
+function markSuited(){
+  tgSuited.classList.toggle('sel',state.suited===true);
+  tgOff.classList.toggle('sel',state.suited===false);
+}
+function refreshSuitedRow(){
+  // pair → suited toggle irrelevant
+  const isPair = state.r1 && state.r2 && state.r1===state.r2;
+  suitedRow.classList.toggle('disabled', isPair);
+}
+
+document.getElementById('reset').onclick=()=>{
+  state.r1=state.r2=null; state.suited=null;
+  markRanks('rank1','r1'); markRanks('rank2','r2');
+  markSuited(); refreshSuitedRow();
+  update();
+};
+
+// derive hand code like AKs / AKo / AA
+function handCode(){
+  if(!state.r1||!state.r2) return null;
+  let a=state.r1,b=state.r2;
+  if(RIDX[a]>RIDX[b]){ [a,b]=[b,a]; }
+  if(a===b){
+    return {code:a+b, pair:true};
+  }
+  let suited = state.suited; // true / false / null
+  return {code:a+b+(suited===null?'?':(suited?'s':'o')), pair:false, suited:suited};
+}
+
+function update(){
+  renderGrid();
+  const v=document.getElementById('verdict');
+  const hc=handCode();
+  if(!state.pos || !state.r1 || !state.r2){
+    v.className='verdict empty';
+    v.innerHTML=`<div class="act">Выбери позицию и две карты</div><div class="why">${state.pos?'Позиция: '+state.pos:'Позиция не выбрана'} · Нужны обе карты</div>`;
+    return;
+  }
+  // need suited/offsuit for non-pairs
+  if(!hc.pair && hc.suited===null){
+    v.className='verdict empty';
+    v.innerHTML=`<div class="act">Укажи масть</div><div class="why">Нажми «одной масти» или «разной масти»</div>`;
+    return;
+  }
+  const set=RANGES[state.pos].hands;
+  const isRaise=set.has(hc.pair?hc.code:hc.code);
+  const disp = prettyHand();
+  if(isRaise){
+    v.className='verdict raise';
+    v.innerHTML=`<div class="hand">${disp}</div><div class="act">РЕЙЗ 2bb ▲</div><div class="why">Эта рука входит в диапазон ${state.pos} (${RANGES[state.pos].pct}). Открывай.</div>`;
+  } else {
+    v.className='verdict fold';
+    v.innerHTML=`<div class="hand">${disp}</div><div class="act">ФОЛД ✕</div><div class="why">Вне диапазона ${state.pos}. С более поздней позиции эта рука может стать рейзом.</div>`;
+  }
+}
+
+function prettyHand(){
+  const hc=handCode();
+  if(!hc) return '';
+  return hc.code; // AA, AKs, AKo
+}
+
+function renderGrid(){
+  const t=document.getElementById('grid'); t.innerHTML='';
+  const set = state.pos?RANGES[state.pos].hands:null;
+  document.getElementById('gridPos').textContent = state.pos||'—';
+  document.getElementById('gridPct').textContent = state.pos?('· '+RANGES[state.pos].pct):'';
+  const hc=handCode();
+  let hlCode=null;
+  if(hc){ if(hc.pair) hlCode=hc.code; else if(hc.suited!==null) hlCode=hc.code; }
+  for(let i=0;i<13;i++){
+    const tr=document.createElement('tr');
+    for(let j=0;j<13;j++){
+      const td=document.createElement('td');
+      let code, label;
+      if(i===j){ code=RANKS[i]+RANKS[j]; label=code; }
+      else if(i<j){ code=RANKS[i]+RANKS[j]+'s'; label=RANKS[i]+RANKS[j]+'s'; }
+      else { code=RANKS[j]+RANKS[i]+'o'; label=RANKS[j]+RANKS[i]+'o'; }
+      td.textContent=label;
+      if(set && set.has(code)) td.classList.add('r');
+      if(hlCode && code===hlCode) td.classList.add('hl');
+      tr.appendChild(td);
+    }
+    t.appendChild(tr);
+  }
+}
+
+renderFmt();
+buildPositions();
+renderGrid();
+</script>
+</body>
+</html>
